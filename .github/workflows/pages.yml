@@ -1,0 +1,35 @@
+name: Pages
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages #против гонки данных при одновременных вызовах workflow - встанут в очередь (новый деплой сразу не прервет старый)
+  cancel-in-progress: true # после постановки в очередь произойдет мягкая отмена прошлого деплоя и выкатрка нового
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} #отображение станицы куда задеплоили
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5 #тут как раз проверка того - включен ли в Actions Pages
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3 #упаковка в архив
+        with:
+          path: .
+
+      - name: Deploy to Pages #деплой в прод
+        id: deployment
+        uses: actions/deploy-pages@v4
